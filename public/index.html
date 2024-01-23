@@ -1,0 +1,212 @@
+<body>
+	Path:<br>
+	<div id="path"></div><br>
+	Data:<br>
+	<div id="data"></div><br>
+	Result:<br>
+	<div id="results"></div><br>
+	<div id="buttons"></div>
+</body>
+<script>
+	var buttons = [
+		{
+			name : "Get Posts",
+			onclick : async function() {
+				var path = "/posts";
+				var response = await fetch( path );
+				var result = await response.json();
+				return { path, result };
+			}
+		},
+		{
+			name : "Get Post by ID",
+			prereqs : [
+				{
+					name : "id",
+					type : "textbox"
+				}
+			],
+			onclick : async function( obj ) {
+				var path = "/posts/" + obj.id;
+				var response = await fetch( path );
+				var result = await response.json();
+				return { path, result };
+			}
+		},
+		{
+			name : "Search",
+			prereqs : [
+				{
+					name : "text",
+					type : "textbox"
+				},
+				{
+					name : "Minimalism",
+					type : "checkbox"
+				},
+				{
+					name : "Essentialism",
+					type : "checkbox"
+				},
+				{
+					name : "Mindfulness",
+					type : "checkbox"
+				}
+			],
+			onclick : async function( obj ) {
+				var path = "/posts/search";
+				var text = obj.text;
+				var tags = [];
+				for( var i = 0; i < this.prereqs.length; i++ ) {
+					if( this.prereqs[ i ].type != "checkbox" ) {
+						continue;
+					}
+					if( obj[ this.prereqs[ i ].name ] ) {
+						tags.push( this.prereqs[ i ].name );
+					}
+				}
+				var data = JSON.stringify( { text, tags } );
+				var response = await fetch( path, {
+					method : "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body : data
+				} );
+				var result = await response.json();
+				return { path, data, result };
+			}
+		},
+		{
+			name : "Get Posts by User ID",
+			prereqs : [
+				{
+					name : "id",
+					type : "textbox"
+				}
+			],
+			onclick : async function( obj ) {
+				var path = "/posts/byuserID/" + obj.id;
+				var response = await fetch( path );
+				var result = await response.json();
+				return { path, result };
+			}
+		},
+		{
+			name : "New Post",
+			prereqs : [
+				{
+					name : "text",
+					type : "textbox"
+				},
+				{
+					name : "Minimalism",
+					type : "checkbox"
+				},
+				{
+					name : "Essentialism",
+					type : "checkbox"
+				},
+				{
+					name : "Mindfulness",
+					type : "checkbox"
+				}
+			],
+			onclick : async function( obj ) {
+				var path = "/posts/new";
+				var text = obj.text;
+				var tags = [];
+				for( var i = 0; i < this.prereqs.length; i++ ) {
+					if( this.prereqs[ i ].type != "checkbox" ) {
+						continue;
+					}
+					if( obj[ this.prereqs[ i ].name ] ) {
+						tags.push( this.prereqs[ i ].name );
+					}
+				}
+				var data = JSON.stringify( { text, tags } );
+				var response = await fetch( path, {
+					method : "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body : data
+				} );
+				var result = await response.json();
+				return { path, data, result };
+			}
+		},
+		{
+			name : "Get User",
+			prereqs : [
+				{
+					name : "id",
+					type : "textbox"
+				}
+			],
+			onclick : async function( obj ) {
+				var path = "/users/" + obj.id;
+				var response = await fetch( path );
+				var result = await response.json();
+				return { path, result };
+			}
+		}
+	]
+	
+	for( var i = 0; i < buttons.length; i++ ) {
+		let button = buttons[ i ];
+		let buttonElem = document.createElement( "button" );
+		buttonElem.innerHTML = button.name;
+		
+		var header = document.createElement( "p" );
+		header.innerHTML = button.name;
+		header.style.fontWeight = "bold";
+		header.style.margin = 0;
+		header.style.fontSize = 18;
+		document.body.appendChild( header );
+		
+		if( button.prereqs ) {
+			for( var j = 0; j < button.prereqs.length; j++ ) {
+				let prereq = button.prereqs[ j ];
+				let elem = document.createElement( "input" );
+				if( prereq.type == "textbox" ) {
+					elem.setAttribute( "type", "text" );
+				} else if( prereq.type == "checkbox" ) {
+					elem.setAttribute( "type", "checkbox" );
+				}
+				elem.id = button.name + prereq.name;
+				document.body.appendChild( document.createTextNode( prereq.name + ":" ) );
+				document.body.appendChild( document.createElement( "br" ) );
+				document.body.appendChild( elem );
+				document.body.appendChild( document.createElement( "br" ) );
+			}
+			document.body.appendChild( document.createElement( "br" ) );
+		}
+		
+		buttonElem.onclick = async function() {
+			var obj = {};
+			if( button.prereqs ) {
+				for( let i = 0; i < button.prereqs.length; i++ ) {
+					let prereq = button.prereqs[ i ];
+					if( prereq.type == "checkbox" ) {
+						obj[ prereq.name ] = document.getElementById( button.name + prereq.name ).checked;
+					} else {
+						obj[ prereq.name ] = document.getElementById( button.name + prereq.name ).value;
+					}
+				}
+			}
+			var returnValue = await button.onclick( obj );
+			document.getElementById( "path" ).innerHTML = returnValue.path;
+			if( returnValue.data ) {
+				document.getElementById( "data" ).innerHTML = returnValue.data;
+			} else {
+				document.getElementById( "data" ).innerHTML = "";
+			}
+			document.getElementById( "results" ).innerHTML = JSON.stringify( returnValue.result );
+		}
+		document.body.appendChild( buttonElem );
+		document.body.appendChild( document.createElement( "br" ) );
+		document.body.appendChild( document.createElement( "br" ) );
+		document.body.appendChild( document.createElement( "br" ) );
+	}
+</script>
